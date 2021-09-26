@@ -18,12 +18,13 @@ class DaganDataset(Dataset):
     def __getitem__(self, idx):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=UserWarning)
-            return self.transform(self.x1_examples[idx]), self.transform(
-                self.x2_examples[idx]
-            )
+            return self.transform(self.x1_examples[idx]), \
+                   self.transform(self.x2_examples[idx])
 
 
 def create_dagan_dataloader(raw_data, num_classes, transform, batch_size):
+    # raw_data shape: (num_of_class, size, img_size)
+
     train_x1 = []
     train_x2 = []
 
