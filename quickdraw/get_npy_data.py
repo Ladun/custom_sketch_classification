@@ -29,7 +29,7 @@ def download(args):
     classes = get_classes(args)
 
     for i, c in enumerate(classes):
-        cls_url = c.replace('_', '%20')
+        cls_url = c.replace(' ', '%20').replace('_', '%20')
         path = base + cls_url + '.npy'
         try:
             urllib.request.urlretrieve(path, os.path.join(args.store_dir, c + '.npy'))
