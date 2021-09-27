@@ -24,6 +24,8 @@ def get_classes(args):
 
 
 def download(args):
+    print("<download> --------------")
+
     base = 'https://storage.googleapis.com/quickdraw_dataset/full/numpy_bitmap/'
 
     classes = get_classes(args)
@@ -34,11 +36,13 @@ def download(args):
         try:
             urllib.request.urlretrieve(path, os.path.join(args.store_dir, c + '.npy'))
             print("[{0:>3}/{1:>3}] Save '{2:>20}' class, path: {3}".format(i + 1, args.max_classes, cls_url, path))
-        except:
-            print("[{0:>3}/{1:>3}] {2:>20} is not exist".format(i + 1, args.max_classes, cls_url))
+        except Exception as e:
+            print("[{0:>3}/{1:>3}] {2:>20} download failed".format(i + 1, args.max_classes, cls_url))
+            print(e)
 
 
 def convert_all_data(args):
+    print("<convert_all_data> --------------")
     all_files = glob.glob(os.path.join(args.store_dir, "*.npy"))
 
     sqr_img_size = args.image_size * args.image_size * args.image_channel
@@ -51,24 +55,30 @@ def convert_all_data(args):
         class_name, ext = os.path.splitext(os.path.basename(file))
         class_names.append(class_name)
 
-        data = np.load(file)
-        if data.shape[0] < args.max_data_per_class:
-            print(f"class_names data is not enough, size: {data.shape}")
+        try:
+            data = np.load(file)
+        except Exception as e:
+            print(f"load failed {class_name}")
+            print(e)
         else:
-            data = data[0: args.max_data_per_class, :]
+            if data.shape[0] < args.max_data_per_class:
+                print(f"class_names data is not enough, size: {data.shape}")
+            else:
+                data = data[0: args.max_data_per_class, :]
 
-            data = data.reshape((1, args.max_data_per_class, sqr_img_size))
+                data = data.reshape((1, args.max_data_per_class, sqr_img_size))
 
-            x = np.concatenate((x, data), axis=0)
+                x = np.concatenate((x, data), axis=0)
+                print(f"[{idx + 1}/{len(all_files)}]add date {class_name}")
 
     data = None
 
     x = x.reshape((-1, args.max_data_per_class, args.image_size, args.image_size, args.image_channel))
+    x = x.astype(np.float32)
 
     print(f"[convert_all_data] data size: {x.shape}")
     np.save(args.dataset_file, x)
     print(f"[convert_all_data] success to save, path: {args.dataset_file}.npy")
-
 
 
 def main():
@@ -82,6 +92,8 @@ def main():
                         help="maximum number of classes")
     parser.add_argument("--max_data_per_class", type=int, default=1000,
                         help="maximum number of data per class")
+    parser.add_argument("--download_specific", type=str, nargs='?',
+                        help="")
     parser.add_argument("--image_size", type=int, default=28)
     parser.add_argument("--image_channel", type=int, default=1)
     parser.add_argument("--seed", type=int, default=2021)

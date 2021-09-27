@@ -98,14 +98,30 @@ def get_dagan_args():
         action="store_true",
         help="If specified, does not show intermediate progress images.",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=2021,
+        help="random seed",
+    )
+    parser.add_argument(
+        "--use_cpu",
+        action="store_true",
+        help="random seed",
+    )
     return parser.parse_args()
 
 
 def main():
     args = get_dagan_args()
 
+    print('<Parsed arguments>')
+    for k, v in vars(args).items():
+        print('{}: {}'.format(k, v))
+    print('')
+
     set_seed(args.seed)
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() and not args.use_cpu else "cpu")
 
     # Load dataset
     raw_data = np.load(args.dataset_path).copy()
@@ -113,7 +129,7 @@ def main():
     img_size = args.img_size or raw_data.shape[2]
 
     # Exception check
-    final_generator_dir = os.path.dirname(args.final_generator_path) or os.getcwd()
+    final_generator_dir = os.path.dirname(args.final_model_path) or os.getcwd()
     if not os.access(final_generator_dir, os.W_OK):
         raise ValueError(args.final_generator_dir + " is not a valid filepath.")
 
@@ -178,7 +194,7 @@ def main():
     trainer.train(data_loader=train_dataloader, epochs=args.epochs, val_images=flat_val_data)
 
     # Save final generator model
-    torch.save(trainer.g, final_generator_dir)
+    torch.save(trainer.g, args.final_model_path)
 
 
 if __name__ == "__main__":
