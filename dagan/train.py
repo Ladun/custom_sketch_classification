@@ -170,8 +170,8 @@ def main():
     g = Generator(dim=img_size, channels=in_channels, dropout_rate=args.dropout_rate)
     d = Discriminator(dim=img_size, channels=in_channels * 2, dropout_rate=args.dropout_rate)
 
-    g_opt = optim.Adam(g.parameters(), lr=0.0001, betas=(0.0, 0.9))
-    d_opt = optim.Adam(d.parameters(), lr=0.0001, betas=(0.0, 0.9))
+    g_opt = optim.AdamW(g.parameters(), lr=0.0001, betas=(0.0, 0.9))
+    d_opt = optim.AdamW(d.parameters(), lr=0.0001, betas=(0.0, 0.9))
 
     # ----------------------- About Train -----------------------
     trainer = DaganTrainer(

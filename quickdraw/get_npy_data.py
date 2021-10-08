@@ -65,8 +65,8 @@ def convert_all_data(args):
                 print(f"class_names data is not enough, size: {data.shape}")
             else:
                 data = data[0: args.max_data_per_class, :]
-
                 data = data.reshape((1, args.max_data_per_class, sqr_img_size))
+                data = np.max(data) - data
 
                 x = np.concatenate((x, data), axis=0)
                 print(f"[{idx + 1}/{len(all_files)}]add date {class_name}")
