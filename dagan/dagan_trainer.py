@@ -140,7 +140,7 @@ class DaganTrainer:
             self._critic_train_iteration(x1, x2)
             # Only update generator every |critic_iterations| iterations
             if self.num_steps % self.critic_iterations == 0:
-                self._generator_train_iteration(x1, x2)
+                self._generator_train_iteration(x1)
 
     def _content_train_iteration(self, x1, x2):
         self.g_opt.zero_grad()

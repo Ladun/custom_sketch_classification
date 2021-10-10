@@ -194,6 +194,7 @@ def main():
     g_opt = optim.AdamW(g.parameters(), lr=0.0001, betas=(0.0, 0.9))
     d_opt = optim.AdamW(d.parameters(), lr=0.0001, betas=(0.0, 0.9))
 
+    print(f"Device: {device}")
     # ----------------------- About Train -----------------------
     trainer = DaganTrainer(
         generator=g,
