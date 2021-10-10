@@ -10,6 +10,7 @@ import torchvision.transforms as transforms
 
 from dagan_trainer import DaganTrainer
 from discriminator import Discriminator
+from feature_extractor import FeatureExtractor
 from generator import Generator
 from dataset import create_dagan_dataloader
 
@@ -75,6 +76,13 @@ def get_dagan_args():
         help="Number of epochs to run training.",
     )
     parser.add_argument(
+        "--init_epochs",
+        nargs="?",
+        type=int,
+        default=15,
+        help="Number of epochs to run content training.",
+    )
+    parser.add_argument(
         "--save_checkpoint_path",
         nargs="?",
         type=str,
@@ -92,6 +100,13 @@ def get_dagan_args():
         nargs="?",
         default=0.5,
         help="Dropout rate to use within network architecture.",
+    )
+    parser.add_argument(
+        "--content_loss_weight",
+        type=float,
+        nargs="?",
+        default=10,
+        help="content_loss_weight",
     )
     parser.add_argument(
         "--suppress_generations",
@@ -169,6 +184,7 @@ def main():
     # Define generator and discriminator
     g = Generator(dim=img_size, channels=in_channels, dropout_rate=args.dropout_rate)
     d = Discriminator(dim=img_size, channels=in_channels * 2, dropout_rate=args.dropout_rate)
+    feature_extractor = FeatureExtractor(feature_network='resnet-101')
 
     g_opt = optim.AdamW(g.parameters(), lr=0.0001, betas=(0.0, 0.9))
     d_opt = optim.AdamW(d.parameters(), lr=0.0001, betas=(0.0, 0.9))
@@ -177,11 +193,13 @@ def main():
     trainer = DaganTrainer(
         generator=g,
         discriminator=d,
+        feature_extractor=feature_extractor,
         gen_optimizer=g_opt,
         dis_optimizer=d_opt,
         batch_size=args.batch_size,
         device=device,
         critic_iterations=5,
+        content_loss_weight=args.content_loss_weight,
         print_every=75,
         num_tracking_images=10,
         save_checkpoint_path=args.save_checkpoint_path,
@@ -191,7 +209,7 @@ def main():
     )
 
     # Do train
-    trainer.train(data_loader=train_dataloader, epochs=args.epochs, val_images=flat_val_data)
+    trainer.train(data_loader=train_dataloader, epochs=args.epochs, init_epochs=args.init_epochs, val_images=flat_val_data)
 
     # Save final generator model
     torch.save(trainer.g, args.final_model_path)

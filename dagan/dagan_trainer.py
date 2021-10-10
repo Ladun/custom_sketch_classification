@@ -17,12 +17,14 @@ class DaganTrainer:
         self,
         generator,
         discriminator,
+        feature_extractor,
         gen_optimizer,
         dis_optimizer,
         batch_size,
         device="cpu",
         gp_weight=10,
         critic_iterations=5,
+        content_loss_weight=10,
         print_every=50,
         num_tracking_images=0,
         save_checkpoint_path=None,
@@ -35,9 +37,14 @@ class DaganTrainer:
         self.g_opt = gen_optimizer
         self.d = discriminator.to(device)
         self.d_opt = dis_optimizer
-        self.losses = {"G": [0.0], "D": [0.0], "GP": [0.0], "gradient_norm": [0.0]}
+        self.feature_extractor = feature_extractor.to(device)
+        self.content_loss = nn.L1Loss()
+        self.content_loss_weight = content_loss_weight
+
+        self.losses = {"G": [0.0], "D": [0.0], "GP": [0.0], "gradient_norm": [0.0], "content_loss": [0.0]}
         self.num_steps = 0
         self.epoch = 0
+        self.init_epoch = 0
         self.gp_weight = gp_weight
         self.critic_iterations = critic_iterations
         self.print_every = print_every
@@ -76,7 +83,7 @@ class DaganTrainer:
         # Record loss
         self.losses["D"].append(d_loss.item())
 
-    def _generator_train_iteration(self, x1):
+    def _generator_train_iteration(self, x1, x2):
         """ """
         self.g_opt.zero_grad()
 
@@ -84,8 +91,9 @@ class DaganTrainer:
         generated_data = self.sample_generator(x1)
 
         # Calculate loss and optimize
-        d_generated = self.d(x1, generated_data)
-        g_loss = -d_generated.mean()
+        d1_generated = self.d(x1, generated_data)
+        d2_generated = self.d(x2, generated_data)
+        g_loss = -(0.5 * d1_generated.mean() + 0.5 * d2_generated.mean())
         g_loss.backward()
         self.g_opt.step()
 
@@ -133,9 +141,29 @@ class DaganTrainer:
             self._critic_train_iteration(x1, x2)
             # Only update generator every |critic_iterations| iterations
             if self.num_steps % self.critic_iterations == 0:
-                self._generator_train_iteration(x1)
+                self._generator_train_iteration(x1, x2)
 
-    def train(self, data_loader, epochs, val_images=None, save_training_gif=True):
+    def _content_train_iteration(self, x1, x2):
+        self.g_opt.zero_grad()
+        x_features = self.feature_extractor(x1).detach()
+        Gx = self.sample_generator(x1)
+        Gx_features = self.feature_extractor(Gx)
+
+        content_loss = self.content_loss_weight * self.content_loss(Gx_features, x_features)
+        content_loss.backward()
+        self.g_opt.step()
+
+        self.losses["content_loss"].append(content_loss.item())
+
+    def _train_init_epoch(self, data_loader):
+        for i, data in enumerate(data_loader):
+            if i % self.print_every == 0:
+                print("Iteration {}".format(i))
+                print("Content Loss: {}".format(self.losses["content_loss"][-1]))
+            x1, x2 = data[0].to(self.device), data[1].to(self.device)
+            self._content_train_iteration(x1, x2)
+
+    def train(self, data_loader, epochs, init_epochs, val_images=None, save_training_gif=True):
         if self.tracking_images is None and self.num_tracking_images > 0:
             self.tracking_images = self.sample_val_images(
                 self.num_tracking_images // 2, val_images
@@ -156,6 +184,16 @@ class DaganTrainer:
 
         start_time = int(time.time())
 
+        # Train Content Loss
+        for s in range(self.init_epoch, init_epochs):
+            print("\nInit Epoch {}".format(self.init_epoch))
+            print(f"Elapsed time: {(time.time() - start_time) / 60:.2f} minutes\n")
+
+            self._train_init_epoch(data_loader)
+            self.init_epoch += 1
+            self._save_checkpoint()
+
+        # Train DAGAN
         while self.epoch < epochs:
             print("\nEpoch {}".format(self.epoch))
             print(f"Elapsed time: {(time.time() - start_time) / 60:.2f} minutes\n")
@@ -229,6 +267,7 @@ class DaganTrainer:
             return
         checkpoint = {
             "epoch": self.epoch,
+            "init_epoch": self.init_epoch,
             "num_steps": self.num_steps,
             "g": self.g.state_dict(),
             "g_opt": self.g_opt.state_dict(),
@@ -243,6 +282,7 @@ class DaganTrainer:
     def hydrate_checkpoint(self, checkpoint_path):
         checkpoint = torch.load(checkpoint_path, map_location=self.device)
         self.epoch = checkpoint["epoch"]
+        self.init_epoch = checkpoint["init_epoch"]
         self.num_steps = checkpoint["num_steps"]
 
         self.g.load_state_dict(checkpoint["g"])
