@@ -124,6 +124,11 @@ def get_dagan_args():
         action="store_true",
         help="random seed",
     )
+    parser.add_argument(
+        "--use_content_loss",
+        action="store_true",
+        help="use content loss",
+    )
     return parser.parse_args()
 
 
@@ -209,7 +214,9 @@ def main():
     )
 
     # Do train
-    trainer.train(data_loader=train_dataloader, epochs=args.epochs, init_epochs=args.init_epochs, val_images=flat_val_data)
+    trainer.train(data_loader=train_dataloader,
+                  epochs=args.epochs, init_epochs=args.init_epochs,
+                  val_images=flat_val_data, content_loss=args.use_content_loss)
 
     # Save final generator model
     torch.save(trainer.g, args.final_model_path)

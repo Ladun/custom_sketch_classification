@@ -162,7 +162,7 @@ class DaganTrainer:
             x1, x2 = data[0].to(self.device), data[1].to(self.device)
             self._content_train_iteration(x1, x2)
 
-    def train(self, data_loader, epochs, init_epochs, val_images=None, save_training_gif=True):
+    def train(self, data_loader, epochs, init_epochs, val_images=None, content_loss, save_training_gif=True):
         if self.tracking_images is None and self.num_tracking_images > 0:
             self.tracking_images = self.sample_val_images(
                 self.num_tracking_images // 2, val_images
@@ -184,13 +184,14 @@ class DaganTrainer:
         start_time = int(time.time())
 
         # Train Content Loss
-        for s in range(self.init_epoch, init_epochs):
-            print("\nInit Epoch {}".format(self.init_epoch))
-            print(f"Elapsed time: {(time.time() - start_time) / 60:.2f} minutes\n")
+        if content_loss:
+            for s in range(self.init_epoch, init_epochs):
+                print("\nInit Epoch {}".format(self.init_epoch))
+                print(f"Elapsed time: {(time.time() - start_time) / 60:.2f} minutes\n")
 
-            self._train_init_epoch(data_loader)
-            self.init_epoch += 1
-            self._save_checkpoint()
+                self._train_init_epoch(data_loader)
+                self.init_epoch += 1
+                self._save_checkpoint()
 
         # Train DAGAN
         while self.epoch < epochs:
