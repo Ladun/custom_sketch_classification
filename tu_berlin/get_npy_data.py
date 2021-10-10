@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 
 def main():
+    # unzip tu-berlin sketch datasets file into 'tu_berlin/data/'
     base_dir = "tu_berlin/data/png"
     path_list = []
     with open(os.path.join(base_dir, "filelist.txt"), 'r') as f:
@@ -35,6 +36,7 @@ def main():
         print(f"{k}: {dic[k].shape}")
         total_file.append(dic[k][np.newaxis, :])
     total_file = np.concatenate(total_file, axis=0)
+    total_file = total_file.astype(np.float32)
     print(f"Total category: {len(dic)}")
 
     np.save("tu_berlin/data/total.npy", total_file)
