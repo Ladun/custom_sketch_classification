@@ -83,7 +83,7 @@ class DaganTrainer:
         # Record loss
         self.losses["D"].append(d_loss.item())
 
-    def _generator_train_iteration(self, x1, x2):
+    def _generator_train_iteration(self, x1):
         """ """
         self.g_opt.zero_grad()
 
@@ -92,8 +92,7 @@ class DaganTrainer:
 
         # Calculate loss and optimize
         d1_generated = self.d(x1, generated_data)
-        d2_generated = self.d(x2, generated_data)
-        g_loss = -(0.5 * d1_generated.mean() + 0.5 * d2_generated.mean())
+        g_loss = -(d1_generated.mean())
         g_loss.backward()
         self.g_opt.step()
 

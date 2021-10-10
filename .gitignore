@@ -8,6 +8,8 @@
 
 test.py
 *.npy
+*/data
+*/__pycache__
 
 # User-specific stuff
 .idea/**/workspace.xml

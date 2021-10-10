@@ -26,7 +26,8 @@ def _conv2d(in_channels, out_channels, kernel_size, stride, activate=True, dropo
     layers["conv"] = nn.Conv2d(in_channels, out_channels, kernel_size, stride)
     if activate:
         layers["relu"] = nn.LeakyReLU(0.2)
-        layers["batchnorm"] = nn.BatchNorm2d(out_channels, eps=1e-3, momentum=0.01)
+        # layers["batchnorm"] = nn.BatchNorm2d(out_channels, eps=1e-3, momentum=0.01)
+        layers["instancenrom"] = nn.InstanceNorm2d(out_channels, eps=1e-3, momentum=0.01)
 
     if dropout > 0.0:
         layers["dropout"] = nn.Dropout(dropout)
@@ -43,7 +44,8 @@ def _conv2d_transpose(
     )
     if activate:
         layers["relu"] = nn.LeakyReLU(0.2)
-        layers["batchnorm"] = nn.BatchNorm2d(out_channels, eps=1e-3, momentum=0.01)
+        # layers["batchnorm"] = nn.BatchNorm2d(out_channels, eps=1e-3, momentum=0.01)
+        layers["instancenrom"] = nn.InstanceNorm2d(out_channels, eps=1e-3, momentum=0.01)
 
     if dropout > 0.0:
         layers["dropout"] = nn.Dropout(dropout)
