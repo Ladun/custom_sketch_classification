@@ -30,7 +30,6 @@ class Trainer(object):
         if load_checkpoint:
             self._load_checkpoint(load_checkpoint)
 
-
     def _train_model(self, train_loader):
         self.classifier.train()
 

@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from torchvision.transforms import ToTensor, Compose, Resize, Grayscale
 from torchvision import datasets, transforms
 
 from trainer import Trainer
@@ -70,24 +71,17 @@ def main():
     train_dataset = datasets.ImageFolder(
         args.train_data,
         transform=transforms.Compose([
-            transforms.Resize([256, 256]),
-            transforms.CenterCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.RandomRotation(45),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                std=[0.229, 0.224, 0.225])
+            Resize([224, 224]),
+            Grayscale(),
+            ToTensor()
         ])
     )
     test_dataset = datasets.ImageFolder(
         args.val_data,
-        transform=transforms.Compose([
-            transforms.Resize([256, 256]),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            #transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                # std=[0.229, 0.224, 0.225])
+        transform=Compose([
+            Resize([256, 256]),
+            Grayscale(),
+            ToTensor()
         ])
     )
 
