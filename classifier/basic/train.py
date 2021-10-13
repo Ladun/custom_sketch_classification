@@ -12,14 +12,13 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-from classifier.basic.trainer import Trainer
-from classifier.basic.model import SketchANet
+from trainer import Trainer
+from model import SketchANet
 '''
 python classifier/basic/train.py \
         --train_data datasets/tu_berlin/data/train\
         --val_data datasets/tu_berlin/data/val\
-        --save_checkpoint classifier/basic/checkpoint/test.ckpt \
-  
+        --save_checkpoint classifier/basic/checkpoint/test.ckpt \  
 '''
 
 
@@ -111,7 +110,7 @@ def main():
                       save_checkpoint_path=args.save_checkpoint,
                       load_checkpoint=args.load_checkpoint)
 
-    # trainer.train(train_loader, test_loader, args.epochs)
+    trainer.train(train_loader, test_loader, args.epochs)
 
 
 if __name__ == "__main__":
