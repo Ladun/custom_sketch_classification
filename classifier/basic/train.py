@@ -79,7 +79,7 @@ def main():
     test_dataset = datasets.ImageFolder(
         args.val_data,
         transform=Compose([
-            Resize([256, 256]),
+            Resize([224, 224]),
             Grayscale(),
             ToTensor()
         ])
@@ -92,8 +92,8 @@ def main():
         test_dataset, batch_size=args.test_batch_size, shuffle=True, **kwargs
     )
     # --------- Model ---------
-    # model = SketchANet(num_classes=args.classes)
-    model = ResNetBase(num_classes=args.classes)
+    model = SketchANet(num_classes=args.classes)
+    # model = ResNetBase(num_classes=args.classes)
 
     # --------- Train ---------
     loss = nn.CrossEntropyLoss()

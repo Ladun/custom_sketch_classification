@@ -14,7 +14,7 @@ class SketchANet(nn.Module):
     def __init__(self, num_classes=250):
         super(SketchANet, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=15, stride=3, padding=0),
+            nn.Conv2d(1, 64, kernel_size=15, stride=3, padding=0),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
             nn.Conv2d(64, 128, kernel_size=5, padding=0),
