@@ -16,9 +16,10 @@ from trainer import Trainer
 from model import SketchANet
 '''
 python classifier/basic/train.py \
-        --train_data datasets/tu_berlin/data/train\
-        --val_data datasets/tu_berlin/data/val\
-        --save_checkpoint classifier/basic/checkpoint/test.ckpt \  
+        --train_data datasets/tu_berlin/data/train \
+        --val_data datasets/tu_berlin/data/val \
+        --save_checkpoint classifier/basic/checkpoint/test.ckpt \
+        
 '''
 
 
@@ -47,13 +48,13 @@ def main():
                         help='number of classes')
     parser.add_argument('--seed', type=int, default=1,
                         help='random seed (default: 1)')
-    parser.add_argument('--save_checkpoint', default='', type=str,
+    parser.add_argument('--save_checkpoint', type=str,
                         help='path to save checkpoint (default: none)')
     parser.add_argument('--load_checkpoint', default='', type=str,
                         help='path to latest checkpoint (default: none)')
-    parser.add_argument('--train_data', default='', type=str,
+    parser.add_argument('--train_data', type=str,
                         help='train dataset directory path')
-    parser.add_argument('--val_data', default='', type=str,
+    parser.add_argument('--val_data', type=str,
                         help='val dataset directory path')
     args = parser.parse_args()
     args.device = torch.device("cuda" if not args.use_cpu and torch.cuda.is_available() else "cpu")
