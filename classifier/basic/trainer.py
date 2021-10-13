@@ -1,17 +1,7 @@
 
 import tqdm
 
-import time
-import argparse
-import os
-import numpy as np
-import random
-
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torchvision import datasets, transforms
-from classifier.basic.model import SketchANet
 
 
 class Trainer(object):
