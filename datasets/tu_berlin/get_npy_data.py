@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 def main():
     # unzip tu-berlin sketch datasets file into 'tu_berlin/data/'
-    base_dir = "tu_berlin/data/png"
+    base_dir = "tu_berlin/data/train"
     path_list = []
     with open(os.path.join(base_dir, "filelist.txt"), 'r') as f:
         path_list = f.readlines()
@@ -21,7 +21,7 @@ def main():
         file_dir, file_name = path_name.split('/')
 
         img = Image.open(os.path.join(base_dir, path_name))
-        img = img.resize((256, 256))
+        img = img.resize((128, 128))
         img = np.asarray(img)
         img = img[np.newaxis, :, :, np.newaxis]
         count += 1
@@ -39,8 +39,8 @@ def main():
     total_file = total_file.astype(np.float32)
     print(f"Total category: {len(dic)}")
 
-    np.save("tu_berlin/data/total.npy", total_file)
-    print("Finish save file to tu_berlin/data/total.npy")
+    np.save("tu_berlin/data/tu_berlin_dataset.npy", total_file)
+    print("Finish save file to tu_berlin/data/tu_berlin_dataset.npy")
 
 
 if __name__ == "__main__":
