@@ -39,17 +39,17 @@ def main():
     parser.add_argument('--epochs', type=int, default=2000,
                         help='input batch size for training')
     parser.add_argument('--learning_rate', type=float, default=2e-4,
-                        help='learning rate (default: 0.01)')
+                        help='learning rate (default: 2e-4)')
     parser.add_argument('--weight_decay', type=float, default=0.0005,
-                        help='Adm weight decay')
+                        help='Adm weight decay (default: 0.0005)')
     parser.add_argument('--use_cpu', action='store_true',
                         help='enables CPU training')
-    parser.add_argument('--classes', type=int, default=419,
-                        help='number of classes')
+    parser.add_argument('--classes', type=int, default=250,
+                        help='number of classes (default: 250)')
     parser.add_argument('--seed', type=int, default=1,
                         help='random seed (default: 1)')
     parser.add_argument('--save_checkpoint', type=str,
-                        help='path to save checkpoint (default: none)')
+                        help='path to save checkpoint ')
     parser.add_argument('--load_checkpoint', default='', type=str,
                         help='path to latest checkpoint (default: none)')
     parser.add_argument('--train_data', type=str,

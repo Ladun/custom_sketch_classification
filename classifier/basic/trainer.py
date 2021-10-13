@@ -68,6 +68,8 @@ class Trainer(object):
 
             self.num_steps += 1
 
+        self._print_progress()
+
     def _eval_model(self, test_loader):
         self.classifier.eval()
 
