@@ -64,6 +64,8 @@ def main():
         print('{}: {}'.format(k, v))
     print('')
 
+    kwargs = {'num_workers': 4, 'pin_memory': True} if not args.use_cpu and torch.cuda.is_available() else {}
+
     # --------- Dataset ---------
     train_dataset = datasets.ImageFolder(
         args.train_data,
@@ -90,10 +92,10 @@ def main():
     )
 
     train_loader = DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=True
+        train_dataset, batch_size=args.batch_size, shuffle=True, **kwargs
     )
     test_loader = DataLoader(
-        test_dataset, batch_size=args.test_batch_size, shuffle=True
+        test_dataset, batch_size=args.test_batch_size, shuffle=True, **kwargs
     )
     # --------- Model ---------
     # model = SketchANet(num_classes=args.classes)

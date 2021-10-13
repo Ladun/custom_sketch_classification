@@ -21,8 +21,8 @@ class Trainer(object):
         self.progress_print = progress_print
 
         self.checkpoint_path = save_checkpoint_path
-        self.logs = {"prec1": [0.0], "prec5": [0.0], "loss": [0.0],
-                     "eval_prec1":[0.0], "eval_prec5":[0.0]}
+        self.logs = {"acc": [0.0], "loss": [0.0],
+                     "eval_acc":[0.0]}
 
         self.epoch = 0
         self.num_steps = 0
