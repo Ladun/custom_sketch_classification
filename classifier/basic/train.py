@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 from trainer import Trainer
-from model import SketchANet
+from model import SketchANet, ResNetBase
 '''
 python classifier/basic/train.py \
         --train_data datasets/tu_berlin/data/train \
@@ -98,7 +98,8 @@ def main():
         test_dataset, batch_size=args.test_batch_size, shuffle=True, **kwargs
     )
     # --------- Model ---------
-    model = SketchANet(num_classes=args.classes)
+    # model = SketchANet(num_classes=args.classes)
+    model = ResNetBase(num_classes=args.classes)
 
     # --------- Train ---------
     loss = nn.CrossEntropyLoss()

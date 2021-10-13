@@ -93,8 +93,8 @@ class Trainer(object):
         self.logs["eval_prec1"].append(eval_prec1)
         self.logs["eval_prec5"].append(eval_prec5)
 
-        print("Prec@1: {}".format(self.logs["prec1"][-1]))
-        print("Prec@5: {}".format(self.logs["prec5"][-1]))
+        print("Prec@1: {}".format(self.logs["eval_prec1"][-1]))
+        print("Prec@5: {}".format(self.logs["eval_prec5"][-1]))
 
     def train(self, train_loader, test_loader, epochs):
 
