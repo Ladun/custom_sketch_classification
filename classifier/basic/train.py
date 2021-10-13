@@ -13,6 +13,8 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor, Compose, Resize, Grayscale
 from torchvision import datasets, transforms
 
+import matplotlib.pyplot as plt
+
 from trainer import Trainer
 from model import SketchANet, ResNetBase
 '''
