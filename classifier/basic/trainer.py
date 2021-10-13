@@ -30,22 +30,12 @@ class Trainer(object):
         if load_checkpoint:
             self._load_checkpoint(load_checkpoint)
 
-    def _accuracy(self, logits, label, topk=(1,)):
-        maxk = max(topk)
-        batch_size = label.size(0)
-        _, pred = logits.topk(maxk, 1, True, True)
-        pred = pred.t()
-        correct = pred.eq(label.view(1, -1).expand_as(pred))
-
-        res = []
-        for k in topk:
-            correct_k = correct[:k].reshape(-1).float().sum(0)
-            res.append(correct_k.mul_(100.0 / batch_size))
-        return res
 
     def _train_model(self, train_loader):
         self.classifier.train()
 
+        total = 0
+        correct = 0
         for batch_index, (batch, label) in enumerate(tqdm.tqdm(train_loader)):
             if self.progress_print != 0 and self.num_steps % self.progress_print == 0:
                 self._print_progress()
@@ -56,9 +46,10 @@ class Trainer(object):
 
             loss = self.loss(logits, label)
 
-            prec1, prec5 = self._accuracy(logits, label, topk=(1, 5))
-            self.logs["prec1"].append(prec1)
-            self.logs["prec5"].append(prec5)
+            _, logits_index = torch.max(logits, 1)
+            total += label.size(0)
+            correct += (logits_index == label).float().sum()
+
             self.logs["loss"].append(loss.item())
 
             self.optimizer.zero_grad()
@@ -68,33 +59,32 @@ class Trainer(object):
 
             self.num_steps += 1
 
+        acc = 100 * correct / total
+        self.logs["acc"].append(acc)
         self._print_progress()
 
     def _eval_model(self, test_loader):
         self.classifier.eval()
 
-        eval_prec1 = 0
-        eval_prec5 = 0
+        eval_acc = 0
+
+        total = 0
+        correct = 0
 
         for batch_index, (batch, label) in enumerate(tqdm.tqdm(test_loader)):
-            if self.progress_print != 0 and self.num_steps % self.progress_print == 0:
-                self._print_progress()
 
             batch, label = batch.to(self.device), label.to(self.device)
             logits = self.classifier(batch)
 
-            prec1, prec5 = self._accuracy(logits, label, topk=(1, 5))
-            eval_prec1 += prec1
-            eval_prec5 += prec5
+            _, logits_index = torch.max(logits, 1)
+            total += label.size(0)
+            correct += (logits_index == label).float().sum()
 
-        eval_prec1 = eval_prec1 / len(test_loader)
-        eval_prec5 = eval_prec5 / len(test_loader)
+        eval_acc = 100 * correct / total
 
-        self.logs["eval_prec1"].append(eval_prec1)
-        self.logs["eval_prec5"].append(eval_prec5)
+        self.logs["eval_acc"].append(eval_acc)
 
-        print("Prec@1: {}".format(self.logs["eval_prec1"][-1]))
-        print("Prec@5: {}".format(self.logs["eval_prec5"][-1]))
+        print("Accuracy: {}".format(self.logs["eval_acc"][-1]))
 
     def train(self, train_loader, test_loader, epochs):
 
@@ -112,8 +102,7 @@ class Trainer(object):
             self._save_checkpoint()
 
     def _print_progress(self):
-        print("Prec@1: {}".format(self.logs["prec1"][-1]))
-        print("Prec@5: {}".format(self.logs["prec5"][-1]))
+        print("Accuracy: {}".format(self.logs["acc"][-1]))
         print("Loss: {}".format(self.logs["loss"][-1]))
 
     def _save_checkpoint(self):
