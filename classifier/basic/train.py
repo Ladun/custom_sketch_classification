@@ -41,8 +41,6 @@ def main():
                         help='input batch size for training')
     parser.add_argument('--learning_rate', type=float, default=2e-4,
                         help='learning rate (default: 2e-4)')
-    parser.add_argument('--weight_decay', type=float, default=0.0005,
-                        help='Adm weight decay (default: 0.0005)')
     parser.add_argument('--use_cpu', action='store_true',
                         help='enables CPU training')
     parser.add_argument('--classes', type=int, default=250,
@@ -97,7 +95,7 @@ def main():
 
     # --------- Train ---------
     loss = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, betas=(0.9, 0.99), weight_decay=args.weight_decay)
+    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
     trainer = Trainer(classifier=model,
                       optimizer=optimizer,
