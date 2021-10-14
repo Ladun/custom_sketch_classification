@@ -1,5 +1,6 @@
 
 import tqdm
+import os
 
 import torch
 
@@ -8,6 +9,7 @@ class Trainer(object):
     def __init__(self,
                  classifier,
                  optimizer,
+                 scheduler,
                  loss,
                  device,
                  progress_print=0,
@@ -17,15 +19,21 @@ class Trainer(object):
         self.device = device
         self.classifier = classifier.to(device)
         self.optimizer = optimizer
+        self.scheduler = scheduler
         self.loss = loss
         self.progress_print = progress_print
 
         self.checkpoint_path = save_checkpoint_path
+        head, tail = os.path.split(save_checkpoint_path)
+        _, ext = os.path.splitext(tail)
+        self.best_path = f"{head}/best{ext}"
+
         self.logs = {"acc": [0.0], "loss": [0.0],
                      "eval_acc":[0.0]}
 
         self.epoch = 0
         self.num_steps = 0
+        self.best_acc = 0
 
         if load_checkpoint:
             self._load_checkpoint(load_checkpoint)
@@ -65,8 +73,6 @@ class Trainer(object):
     def _eval_model(self, test_loader):
         self.classifier.eval()
 
-        eval_acc = 0
-
         total = 0
         correct = 0
 
@@ -80,6 +86,8 @@ class Trainer(object):
             correct += (logits_index == label).float().sum()
 
         eval_acc = 100 * correct / total
+        if eval_acc > self.best_acc:
+            self._save_checkpoint(self.best_path)
 
         self.logs["eval_acc"].append(eval_acc)
 
@@ -90,6 +98,7 @@ class Trainer(object):
         for epoch in range(self.epoch, epochs):
 
             print(f"\n<Epoch: {epoch}> -------")
+            self.scheduler.step()
 
             print("<Train Step> ------")
             self._train_model(train_loader)
@@ -98,22 +107,24 @@ class Trainer(object):
             self._eval_model(test_loader)
 
             print("<Save checkpoint> ------")
-            self._save_checkpoint()
+            self._save_checkpoint(self.checkpoint_path)
 
     def _print_progress(self):
         print("Accuracy: {}".format(self.logs["acc"][-1]))
         print("Loss: {}".format(self.logs["loss"][-1]))
 
-    def _save_checkpoint(self):
-        if self.checkpoint_path is None:
+    def _save_checkpoint(self, path):
+        if path is None:
             return
         checkpoint = {
             "epoch": self.epoch,
             "num_steps": self.num_steps,
+            "best_acc": self.best_acc,
             "classifier": self.classifier.state_dict(),
             "optimizer": self.optimizer.state_dict(),
+            "scheduler": self.scheduler.state_dict()
         }
-        torch.save(checkpoint, self.checkpoint_path)
+        torch.save(checkpoint, path)
 
     def _load_checkpoint(self, checkpoint_path):
         print("=> loading checkpoint '{}'".format(checkpoint_path))
@@ -122,9 +133,11 @@ class Trainer(object):
 
         self.epoch = checkpoint["epoch"]
         self.num_steps = checkpoint["num_steps"]
+        self.best_acc = checkpoint["best_acc"]
 
         self.classifier.load_state_dict(checkpoint["classifier"])
         self.optimizer.load_state_dict(checkpoint["optimizer"])
+        self.scheduler.load_state_dict(checkpoint["scheduler"])
 
         print("=> loaded checkpoint '{}' (epoch {})"
               .format(checkpoint_path, checkpoint['epoch']))

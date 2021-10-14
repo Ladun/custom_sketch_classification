@@ -92,15 +92,17 @@ def main():
         test_dataset, batch_size=args.test_batch_size, shuffle=True, **kwargs
     )
     # --------- Model ---------
-    model = SketchANet(num_classes=args.classes)
-    # model = ResNetBase(num_classes=args.classes)
+    # model = SketchANet(num_classes=args.classes)
+    model = ResNetBase(num_classes=args.classes)
 
     # --------- Train ---------
     loss = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
     trainer = Trainer(classifier=model,
                       optimizer=optimizer,
+                      scheduler=scheduler,
                       loss=loss,
                       device=args.device,
                       save_checkpoint_path=args.save_checkpoint,

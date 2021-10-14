@@ -50,15 +50,14 @@ class ResNetBase(nn.Module):
     def __init__(self, num_classes=250):
         super(ResNetBase, self).__init__()
         self.conv = resnet34(True)
+        self.conv.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3,
+                               bias=False)
 
         self.flatten_dim = 512 * 7 * 7
 
         self.classifier = nn.Sequential(
             nn.Linear(self.flatten_dim, 512),
-            nn.ReLU(inplace=True),
-            nn.Dropout(),
-            nn.Linear(512, 512),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(),
             nn.Linear(512, num_classes),
         )
