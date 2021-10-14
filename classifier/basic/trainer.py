@@ -98,7 +98,6 @@ class Trainer(object):
         for epoch in range(self.epoch, epochs):
 
             print(f"\n<Epoch: {epoch}> -------")
-            self.scheduler.step()
 
             print("<Train Step> ------")
             self._train_model(train_loader)
@@ -108,6 +107,8 @@ class Trainer(object):
 
             print("<Save checkpoint> ------")
             self._save_checkpoint(self.checkpoint_path)
+
+            self.scheduler.step()
 
     def _print_progress(self):
         print("Accuracy: {}".format(self.logs["acc"][-1]))
