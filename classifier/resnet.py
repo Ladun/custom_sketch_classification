@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 import math
 import torch.utils.model_zoo as model_zoo
 from torch.nn import functional as F
@@ -106,6 +107,7 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -143,6 +145,8 @@ class ResNet(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
 
         return x
 

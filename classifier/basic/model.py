@@ -1,9 +1,6 @@
-import torch
 import torch.nn as nn
-import torch.nn.init as init
-import torch.nn.functional as F
 
-from resnet import resnet34
+from classifier.resnet import resnet34
 
 model_paths ={
     'sketchanet': '',
@@ -14,7 +11,7 @@ class SketchANet(nn.Module):
     def __init__(self, num_classes=250):
         super(SketchANet, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=15, stride=3, padding=0),
+            nn.Conv2d(3, 64, kernel_size=15, stride=3, padding=0),
             nn.ReLU(),
             nn.BatchNorm2d(64),
             nn.MaxPool2d(kernel_size=3, stride=2),
@@ -50,10 +47,8 @@ class ResNetBase(nn.Module):
     def __init__(self, num_classes=250):
         super(ResNetBase, self).__init__()
         self.conv = resnet34(True)
-        self.conv.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3,
-                               bias=False)
 
-        self.flatten_dim = 512 * 7 * 7
+        self.flatten_dim = 512
 
         self.classifier = nn.Sequential(
             nn.Linear(self.flatten_dim, 512),
