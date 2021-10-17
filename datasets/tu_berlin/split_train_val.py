@@ -2,10 +2,13 @@ from tqdm import tqdm
 import os
 import shutil
 
-def main():
+import argparse
+
+
+def main(args):
     # unzip tu-berlin sketch datasets file into 'tu_berlin/data/'
-    train_dir = "datasets/tu_berlin/data/train"
-    val_dir = "datasets/tu_berlin/data/val"
+    train_dir = args.train
+    val_dir = args.val
     path_list = []
     with open(os.path.join(train_dir, "filelist.txt"), 'r') as f:
         path_list = f.readlines()
@@ -22,7 +25,7 @@ def main():
         else:
             dic[file_dir] = [file_name]
 
-    val_item_per_class = 5
+    val_item_per_class = args.val_size
     # split train and validation
     for key in dic:
         images = dic[key]
@@ -39,5 +42,10 @@ def main():
             idx += 1
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train", type=str, default="datasets/tu_berlin/data/train")
+    parser.add_argument("--val", type=str, default="datasets/tu_berlin/data/val")
+    parser.add_argument("--val_size", type=int, default=15)
+
     main()
 
