@@ -1,6 +1,7 @@
 from tqdm import tqdm
 import os
 import shutil
+import random
 
 import argparse
 
@@ -25,27 +26,43 @@ def main(args):
         else:
             dic[file_dir] = [file_name]
 
-    val_item_per_class = args.val_size
     # split train and validation
-    for key in dic:
-        images = dic[key]
-        print(f"{key}: {len(images)}")
+    if args.split_by_class:
+        keys = dic.keys()
+        keys = random.sample(keys, args.val_size_for_class)
 
-        src_dir = os.path.join(train_dir, key)
-        tar_dir = os.path.join(val_dir, key)
-        if not os.path.exists(tar_dir):
-            os.makedirs(tar_dir)
+        for key in keys:
+            src_dir = os.path.join(train_dir, key)
 
-        idx = 0
-        for _ in range(val_item_per_class):
-            shutil.move(os.path.join(src_dir, images[idx]), os.path.join(tar_dir, images[idx]))
-            idx += 1
+            shutil.move(src_dir, val_dir)
+    else:
+        val_item_per_class = args.val_item_per_class
+        for key in dic:
+            images = dic[key]
+            print(f"{key}: {len(images)}")
+
+            src_dir = os.path.join(train_dir, key)
+            tar_dir = os.path.join(val_dir, key)
+            if not os.path.exists(tar_dir):
+                os.makedirs(tar_dir)
+
+            idxs = random.sample(range(len(images)), val_item_per_class)
+            for idx in idxs:
+                shutil.move(os.path.join(src_dir, images[idx]), os.path.join(tar_dir, images[idx]))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", type=str, default="datasets/tu_berlin/data/train")
     parser.add_argument("--val", type=str, default="datasets/tu_berlin/data/val")
-    parser.add_argument("--val_size", type=int, default=15)
+    parser.add_argument("--val_item_per_class", type=int, default=15)
+    parser.add_argument("--val_size_for_class", type=int, default=15)
+    parser.add_argument("--seed", type=int, default=2021)
+    parser.add_argument("--split_by_class", action="store_true",
+                        help="if TRUE, split data by class\n else, split data each class")
 
-    main()
+    args = parser.parse_args()
+
+    random.seed(args.seed)
+    main(args)
 
