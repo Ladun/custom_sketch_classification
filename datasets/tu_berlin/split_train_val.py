@@ -28,12 +28,12 @@ def main(args):
 
     # split train and validation
     if args.split_by_class:
-        keys = dic.keys()
-        keys = random.sample(keys, args.val_size_for_class)
+        keys = random.sample(dic.keys(), args.val_size_for_class)
 
         for key in keys:
             src_dir = os.path.join(train_dir, key)
 
+            print(f"{src_dir} to {val_dir}")
             shutil.move(src_dir, val_dir)
     else:
         val_item_per_class = args.val_item_per_class
@@ -47,6 +47,7 @@ def main(args):
                 os.makedirs(tar_dir)
 
             idxs = random.sample(range(len(images)), val_item_per_class)
+            print(f"{idxs} to {tar_dir}")
             for idx in idxs:
                 shutil.move(os.path.join(src_dir, images[idx]), os.path.join(tar_dir, images[idx]))
 
