@@ -15,9 +15,6 @@ class PrototypicalNet(nn.Module):
         z_support = self.backbone(support_images)
         z_query = self.backbone(query_images)
 
-        print(z_support.shape)
-        print(z_query.shape)
-
         # Infer the number of different classes from the labels of the support set
         n_way = len(torch.unique(support_labels))
         # Prototype i is the mean of all instances of features corresponding to labels == i
@@ -27,7 +24,6 @@ class PrototypicalNet(nn.Module):
                 for label in range(n_way)
             ]
         )
-        print(z_proto.shape)
 
         # Compute the euclidean distance from queries to prototypes
         dists = torch.cdist(z_query, z_proto)

@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 from trainer import Trainer
 from model import PrototypicalNet
-from classifier.resnet import resnet18
+from torchvision.models import resnet18
 from datasets import TaskSampler
 
 '''
@@ -118,7 +118,7 @@ def main():
 
     # --------- Model ---------
     backbone = resnet18(pretrained=True)
-    backbone.fc = nn.Flatten()
+    backbone.fc = nn.Identity()
     model = PrototypicalNet(backbone)
 
     # --------- Train ---------

@@ -72,7 +72,7 @@ def main():
         args.train_data,
         transform=transforms.Compose([
             Resize([224, 224]),
-            Grayscale(),
+            Grayscale(num_output_channels=3),
             ToTensor()
         ])
     )
@@ -80,7 +80,7 @@ def main():
         args.val_data,
         transform=Compose([
             Resize([224, 224]),
-            Grayscale(),
+            Grayscale(num_output_channels=3),
             ToTensor()
         ])
     )

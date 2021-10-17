@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-from classifier.resnet import resnet34
+from torchvision.models import resnet34
 
 model_paths ={
     'sketchanet': '',
@@ -47,6 +47,7 @@ class ResNetBase(nn.Module):
     def __init__(self, num_classes=250):
         super(ResNetBase, self).__init__()
         self.conv = resnet34(True)
+        self.conv.fc = nn.Identity()
 
         self.flatten_dim = 512
 
