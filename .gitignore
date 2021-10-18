@@ -12,6 +12,7 @@ test.py
 */tu_berlin/data
 */__pycache__
 *.ckpt
+*.png
 
 # User-specific stuff
 .idea/**/workspace.xml
