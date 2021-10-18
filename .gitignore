@@ -11,6 +11,7 @@ test.py
 */quickdraw/data
 */tu_berlin/data
 */__pycache__
+*.ckpt
 
 # User-specific stuff
 .idea/**/workspace.xml

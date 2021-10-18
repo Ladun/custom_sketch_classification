@@ -1,5 +1,7 @@
+import os
 import random
 from typing import List, Tuple
+from PIL import Image
 
 import torch
 from torch.utils.data import Sampler, Dataset
@@ -104,3 +106,87 @@ class TaskSampler(Sampler):
             query_labels,
             true_class_ids,
         )
+
+
+class InferenceDataset(Dataset):
+    def __init__(self, infer_dataset_dir, transforms, n_way=5, n_shot=5):
+        '''
+
+        :param infer_dataset_dir:
+            path of inference datasets,
+            need to follow the directory structure below
+            infer_dataset_dir
+                - support
+                    - class1
+                        - 'image001...'
+                        - ...
+                    - class2
+                        - 'image00n...'
+                        - ...
+                    - class3
+                        - 'image00m...'
+                        - ...
+                - query
+                    - images...
+                    - ...
+
+        '''
+
+        self.n_way = n_way
+        self.n_shot = n_shot
+        self.transforms = transforms
+
+        dataset_dir = infer_dataset_dir
+        list_dir = os.listdir(dataset_dir)
+        assert ('query' in list_dir and 'support' in list_dir),\
+            "dataset dir need to have directory 'query' and 'support'"
+
+        self.support_images = {}
+        self.support_keys = os.listdir(os.path.join(dataset_dir, 'support'))
+        for key in self.support_keys:
+            path = os.path.join(dataset_dir, 'support', key)
+
+            file_list = os.listdir(path)
+            for file in file_list:
+                image = Image.open(os.path.join(path, file))
+
+                if key in self.support_images.keys():
+                    self.support_images[key].append(image)
+                else:
+                    self.support_images[key] = [image]
+
+        self.query_images = []
+        for file in os.listdir(os.path.join(dataset_dir, 'query')):
+            file_path = os.path.join(dataset_dir, 'query', file)
+            image = Image.open(file_path)
+            self.query_images.append(image)
+
+    def __len__(self):
+        return len(self.query_images)
+
+    def __getitem__(self, idx):
+
+        query = self.transforms(self.query_images[idx])
+        _support_images = [
+                    (random.sample(
+                        self.support_images[label], self.n_shot
+                    ), label)
+                    for label in random.sample(self.support_images.keys(), self.n_way)
+                ]
+
+        support_images = []
+        support_labels = []
+        true_class = {}
+        idx = 0
+        for image_list, label in _support_images:
+            true_class[idx] = label
+            for image in image_list:
+                image = self.transforms(image)
+                support_images.append(image.unsqueeze(0))
+                support_labels.append(idx)
+            idx += 1
+
+        support_images = torch.cat(support_images, dim=0)
+        support_labels = torch.tensor(support_labels)
+
+        return support_images, support_labels, query, true_class

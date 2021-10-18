@@ -32,9 +32,10 @@ def main(args):
 
         for key in keys:
             src_dir = os.path.join(train_dir, key)
+            tar_dir = os.path.join(val_dir, key)
 
-            print(f"{src_dir} to {val_dir}")
-            shutil.move(src_dir, val_dir)
+            print(f"{src_dir} to {tar_dir}")
+            shutil.move(src_dir, tar_dir)
     else:
         val_item_per_class = args.val_item_per_class
         for key in dic:
