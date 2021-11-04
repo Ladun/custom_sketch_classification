@@ -156,8 +156,9 @@ def infer(args, model):
 
         softmax = nn.Softmax(dim=-1)(scores)
 
-        print(f"[{batch_index}] query image {query_name}: {true_class[logits_index.item()]}, {softmax.detach().numpy() * 100}")
-
+        tc = [[ value[0], round(percent * 100, 3)] for percent, value in zip(softmax.detach().numpy()[0], true_class.values())]
+        tc.sort(key=lambda x: x[0])
+        print(f"[{batch_index}] query image {query_name}: {true_class[logits_index.item()]}, {tc}")
 
 if __name__ == "__main__":
     main()
