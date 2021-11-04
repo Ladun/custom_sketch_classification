@@ -57,6 +57,8 @@ def main():
     args = parser.parse_args()
     args.device = torch.device("cuda" if not args.use_cpu and torch.cuda.is_available() else "cpu")
 
+    set_seed(args.seed)
+
     print('<Parsed arguments>')
     for k, v in vars(args).items():
         print('{}: {}'.format(k, v))
@@ -136,21 +138,25 @@ def infer(args, model):
                                         transforms.Grayscale(num_output_channels=3),
                                         transforms.ToTensor()
                                     ]),
-                                  n_way= 2,
+                                  n_way=3,
                                   n_shot=5)
     data_loader = DataLoader(infer_data, batch_size=1)
 
-    for batch_index, (batch) in enumerate(tqdm.tqdm(data_loader)):
+    np.set_printoptions(precision=6, suppress=True)
+    for batch_index, (batch) in enumerate(data_loader):
         support_images = batch[0].to(args.device).squeeze(0)
         support_labels = batch[1].to(args.device).squeeze(0)
         query_images = batch[2].to(args.device)
         true_class = batch[3]
+        query_name = batch[4]
 
         scores = model(support_images, support_labels, query_images)
 
         _, logits_index = torch.max(scores, 1)
 
-        print(f"query image {batch_index}: {true_class[logits_index.item()]}")
+        softmax = nn.Softmax(dim=-1)(scores)
+
+        print(f"[{batch_index}] query image {query_name}: {true_class[logits_index.item()]}, {softmax.detach().numpy() * 100}")
 
 
 if __name__ == "__main__":

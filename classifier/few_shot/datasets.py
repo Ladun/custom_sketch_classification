@@ -156,10 +156,12 @@ class InferenceDataset(Dataset):
                     self.support_images[key] = [image]
 
         self.query_images = []
+        self.query_image_name = []
         for file in os.listdir(os.path.join(dataset_dir, 'query')):
             file_path = os.path.join(dataset_dir, 'query', file)
             image = Image.open(file_path)
             self.query_images.append(image)
+            self.query_image_name.append(file)
 
     def __len__(self):
         return len(self.query_images)
@@ -167,6 +169,7 @@ class InferenceDataset(Dataset):
     def __getitem__(self, idx):
 
         query = self.transforms(self.query_images[idx])
+        query_name = self.query_image_name[idx]
         _support_images = [
                     (random.sample(
                         self.support_images[label], self.n_shot
@@ -189,4 +192,4 @@ class InferenceDataset(Dataset):
         support_images = torch.cat(support_images, dim=0)
         support_labels = torch.tensor(support_labels)
 
-        return support_images, support_labels, query, true_class
+        return support_images, support_labels, query, true_class, query_name
