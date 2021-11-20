@@ -28,7 +28,6 @@ class PrototypicalNet(nn.Module):
         # Compute the euclidean distance from queries to prototypes
         dists = torch.cdist(z_query, z_proto)
 
-        # And here is the super complicated operation to transform those distances into classification scores!
         scores = -dists
 
         return scores

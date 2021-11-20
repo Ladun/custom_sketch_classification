@@ -45,6 +45,7 @@ class Inferencer(object):
         # --------- Load Model ----------
         checkpoint = torch.load(model_ckpt, map_location=self.device)
         self.model.load_state_dict(checkpoint["classifier"])
+        self.model.eval()
 
         self.transforms = transforms
         self.n_shot = n_shot
@@ -70,7 +71,7 @@ class Inferencer(object):
 
     def _update_support(self):
         _support_images = [
-            (self._support_images[label][:self.n_shot], label)
+            (random.sample(self._support_images[label], self.n_shot), label)
             for label in self._support_keys
         ]
 
@@ -78,7 +79,7 @@ class Inferencer(object):
         self.support_labels = []
         self.true_class = {}
         idx = 0
-        for image_list , label in _support_images:
+        for image_list, label in _support_images:
             self.true_class[idx] = label
             for image in image_list:
                 image = self.transforms(image)
