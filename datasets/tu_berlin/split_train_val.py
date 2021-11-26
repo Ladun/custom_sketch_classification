@@ -38,7 +38,7 @@ def main(args):
             convert_indexes = random.sample(range(length), length // 2)
 
             for idx in convert_indexes:
-                path = os.path.join(file_dir, images_name[idx])
+                path = os.path.join(train_dir, file_dir, images_name[idx])
                 img = cv2.imread(path)
                 img = convert_line_to_dotted_line(img)
                 cv2.imwrite(path, img)
