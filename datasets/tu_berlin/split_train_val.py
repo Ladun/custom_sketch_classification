@@ -20,6 +20,7 @@ def main(args):
     dic = {}
     count = 0
     # Get All image data path
+    print("Make dictionary----")
     for path_name in tqdm(path_list):
         path_name = path_name.replace('\n', '')
         file_dir, file_name = path_name.split('/')
@@ -30,6 +31,7 @@ def main(args):
             dic[file_dir] = [file_name]
 
     if args.convert_dot_line:
+        print("Do convert_dot_line----")
         for file_dir in dic:
             images_name = dic[file_dir]
             length = len(images_name)
@@ -42,6 +44,7 @@ def main(args):
                 cv2.imwrite(path, img)
 
     # split train and validation
+    print("Split train and validation----")
     if args.split_by_class:
         keys = random.sample(dic.keys(), args.val_size_for_class)
 
