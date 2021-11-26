@@ -5,6 +5,9 @@ import random
 
 import argparse
 
+import cv2
+
+from utils import convert_line_to_dotted_line
 
 def main(args):
     # unzip tu-berlin sketch datasets file into 'tu_berlin/data/'
@@ -25,6 +28,18 @@ def main(args):
             dic[file_dir].append(file_name)
         else:
             dic[file_dir] = [file_name]
+
+    if args.convert_dot_line:
+        for file_dir in dic:
+            images_name = dic[file_dir]
+            length = len(images_name)
+            convert_indexes = random.sample(range(length), length // 2)
+
+            for idx in convert_indexes:
+                path = os.path.join(file_dir, images_name[idx])
+                img = cv2.imread(path)
+                img = convert_line_to_dotted_line(img)
+                cv2.imwrite(path, img)
 
     # split train and validation
     if args.split_by_class:
@@ -62,6 +77,8 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=2021)
     parser.add_argument("--split_by_class", action="store_true",
                         help="if TRUE, split data by class\n else, split data each class")
+    parser.add_argument("--convert_dot_line", action="store_true",
+                        help="Change the line to a dotted line.")
 
     args = parser.parse_args()
 

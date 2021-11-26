@@ -7,6 +7,7 @@ class PrototypicalNet(nn.Module):
     def __init__(self, backbone):
         super().__init__()
 
+        # Feature extract backbone
         self.backbone = backbone
 
     def forward(self, support_images, support_labels, query_images):
