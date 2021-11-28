@@ -62,6 +62,7 @@ def main():
                         help='train dataset directory path')
     parser.add_argument('--val_data', type=str,
                         help='val dataset directory path')
+    parser.add_argument('--optimizer', type=str, default='adam', choices=['adam', 'sgd', 'adamw'])
     args = parser.parse_args()
     args.device = torch.device("cuda" if not args.use_cpu and torch.cuda.is_available() else "cpu")
 
@@ -123,7 +124,13 @@ def main():
 
     # --------- Train ---------
     loss = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    if args.optimizer == 'adam':
+        optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    elif args.optimizer == 'sgd':
+        optimizer = optim.SGD(model.parameters(), lr=args.learning_rate)
+    else:
+        optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate)
+
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
     trainer = Trainer(classifier=model,
