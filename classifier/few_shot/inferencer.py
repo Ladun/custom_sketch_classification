@@ -2,6 +2,7 @@ import os
 import numpy as np
 import random
 from PIL import Image
+import time
 
 import torch
 import torch.nn as nn
@@ -18,7 +19,8 @@ class Inferencer(object):
                  device,
                  support_dir,
                  transforms,
-                 n_shot):
+                 n_shot,
+                 seed):
         '''
         :param support_dir:
             path of inference datasets,
@@ -45,6 +47,7 @@ class Inferencer(object):
         # --------- Load Model ----------
         checkpoint = torch.load(model_ckpt, map_location=self.device)
         self.model.load_state_dict(checkpoint["classifier"])
+        self.model.to(device)
         self.model.eval()
 
         self.transforms = transforms
@@ -68,6 +71,13 @@ class Inferencer(object):
 
         # real uses support images
         self._update_support()
+        self._update_support_proto()
+
+    def _set_seed(self, seed):
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
 
     def _update_support(self):
         _support_images = [
@@ -89,18 +99,37 @@ class Inferencer(object):
         self.support_images = torch.cat(self.support_images, dim=0)
         self.support_labels = torch.tensor(self.support_labels)
 
+    def _update_support_proto(self):
+        # Extract the features of support and query images
+        z_support = self.model.backbone(self.support_images.to(self.device))
+
+        # Infer the number of different classes from the labels of the support set
+        n_way = len(torch.unique(self.support_labels))
+        # Prototype i is the mean of all instances of features corresponding to labels == i
+        self.z_proto = torch.cat(
+            [
+                z_support[torch.nonzero(self.support_labels == label)].mean(0)
+                for label in range(n_way)
+            ]
+        )
+
     def inference(self, query_images):
 
         query_images = query_images.to(self.device)
         if len(query_images.size()) == 3:
             query_images = query_images.unsqueeze(0)
 
-        scores = self.model.forward(self.support_images, self.support_labels, query_images)
+        st=  time.time()
+        z_query = self.model.backbone(query_images)
+        print(f"{time.time() - st} sec...")
+        dists = torch.cdist(z_query, self.z_proto)
+        scores = (-dists).cpu().detach()
+
         _, logits_index = torch.max(scores, 1)
 
         softmax = nn.Softmax(dim=-1)(scores)
 
-        return logits_index.item(), self.true_class[logits_index.item()], softmax.detach().numpy()[0]
+        return logits_index.item(), self.true_class[logits_index.item()], softmax.numpy()[0]
 
 
 if __name__ == "__main__":

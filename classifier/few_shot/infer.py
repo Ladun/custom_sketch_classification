@@ -70,6 +70,7 @@ def main():
     backbone = resnet18(pretrained=True)
     backbone.fc = nn.Identity()
     model = PrototypicalNet(backbone)
+    model.to(args.device)
 
     # --------- Load Model ----------
     checkpoint = torch.load(args.load_checkpoint, map_location=args.device)
@@ -129,6 +130,8 @@ def evaluate_with_loader(args, model, kwargs):
 
 
 def infer(args, model):
+    import time
+
     model.eval()
 
     # -------------- Load Data -----------------
@@ -138,10 +141,11 @@ def infer(args, model):
                                         transforms.Grayscale(num_output_channels=3),
                                         transforms.ToTensor()
                                     ]),
-                                  n_way=3,
-                                  n_shot=5)
+                                  n_way=args.n_way,
+                                  n_shot=args.n_shot)
     data_loader = DataLoader(infer_data, batch_size=1)
 
+    st = time.time()
     np.set_printoptions(precision=6, suppress=True)
     for batch_index, (batch) in enumerate(data_loader):
         support_images = batch[0].to(args.device).squeeze(0)
@@ -157,10 +161,11 @@ def infer(args, model):
         softmax = nn.Softmax(dim=-1)(scores)
 
         tc = [[ value[0], score, round(percent * 100, 3)]
-              for score, percent, value in zip(scores.detach().numpy()[0], softmax.detach().numpy()[0], true_class.values())]
+              for score, percent, value in zip(scores.cpu().detach().numpy()[0], softmax.cpu().detach().numpy()[0], true_class.values())]
         tc.sort(key=lambda x: x[0])
         print(f"[{batch_index}] query image {query_name}: {true_class[logits_index.item()]}, {tc}")
-
+    ed = time.time()
+    print(f"Process Time: {ed - st} sec..., {(ed -st) / len(data_loader)}")
 
 if __name__ == "__main__":
     main()

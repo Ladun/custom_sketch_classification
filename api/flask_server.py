@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 import numpy as np
 import torch
 from torchvision import transforms
+import cv2
 
 import matplotlib.pyplot as plt
 
@@ -20,11 +21,12 @@ infer_transforms = transforms.Compose([
     transforms.Grayscale(num_output_channels=3)
 ])
 
-inferencer = Inferencer(model_ckpt="classifier/few_shot/checkpoint/best_few_shot.ckpt",
+inferencer = Inferencer(model_ckpt="classifier/few_shot/checkpoint/best_few_shot_50_dotted.ckpt",
                         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
                         support_dir="datasets/data/few_shot_test/support",
                         transforms=infer_transforms,
-                        n_shot=5)
+                        n_shot=5,
+                        seed=2021)
 app = Flask(__name__)
 
 
@@ -41,9 +43,6 @@ def convert_to_image(data):
     image_points *= test_size
     image_points = image_points.astype(np.uint32)
 
-    # print(f"{image_points.shape}, {np.max(image_points[:, 0])}, {np.max(image_points[:, 1])},"
-    #       f" {np.min(image_points[:, 0])}, {np.min(image_points[:, 1])}")
-
     images = np.ones((test_size, test_size)) * 255
     images[image_points[:, 1], image_points[:, 0]] = 0
     images = images.reshape((test_size, test_size, -1)).repeat(repeats=3, axis=-1)
@@ -55,14 +54,16 @@ def predict():
     data = request.json
     if data["is_point"]:
         query_images = convert_to_image(data)
-        plt.imshow(query_images), plt.show()
+
+        cv2.imwrite("test1.png", query_images)
+        # plt.imshow(query_images), plt.show()
     else:
         query_images = np.array(data['images'], dtype=np.uint8)
     query_images = infer_transforms(query_images)
 
     class_id, class_name, softmax = inferencer.inference(query_images)
 
-    print(f"Result: {({'class_id': class_id, 'class_name': class_name,'softmax': softmax.tolist()})}")
+    print(f"Result: {({'class_id': class_id, 'class_name': class_name,'softmax': np.round(softmax.tolist(), 4)})}")
     return jsonify({'class_id': class_id, 'class_name': class_name,'softmax': softmax.tolist()})
 
 
