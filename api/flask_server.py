@@ -57,8 +57,8 @@ def predict():
     if data["is_point"]:
         query_images = convert_to_image(data)
 
-        cv2.imwrite("test1.png", query_images)
-        plt.imshow(query_images), plt.show()
+        # cv2.imwrite("test1.png", query_images)
+        # plt.imshow(query_images), plt.show()
     else:
         query_images = np.array(data['images'], dtype=np.uint8)
     query_images = infer_transforms(query_images)
