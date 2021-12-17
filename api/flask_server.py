@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request
 import numpy as np
 import torch
 from torchvision import transforms
-import cv2
+import cv2.cv2 as cv2
 
 import matplotlib.pyplot as plt
 
@@ -44,6 +44,8 @@ def convert_to_image(data):
     image_points = image_points.astype(np.uint32)
 
     images = np.ones((test_size, test_size)) * 255
+    for point in image_points:
+        images = cv2.circle(images, (point[0], point[1]), 5, (0, 0, 0), cv2.FILLED)
     images[image_points[:, 1], image_points[:, 0]] = 0
     images = images.reshape((test_size, test_size, -1)).repeat(repeats=3, axis=-1)
     return images.astype(np.uint8)
@@ -56,7 +58,7 @@ def predict():
         query_images = convert_to_image(data)
 
         cv2.imwrite("test1.png", query_images)
-        # plt.imshow(query_images), plt.show()
+        plt.imshow(query_images), plt.show()
     else:
         query_images = np.array(data['images'], dtype=np.uint8)
     query_images = infer_transforms(query_images)
